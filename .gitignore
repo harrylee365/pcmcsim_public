@@ -1,0 +1,16 @@
+obj_debug/
+obj_fast/
+*.fast
+*.debug
+*.swp
+*.do
+*.fo
+*.trace
+*.trc
+*.log
+*.out
+*.txt
+*/*~
+.sconsign.dblite
+logs/data_ext/ext_aitcc.py
+run_scripts/run_benches.sh

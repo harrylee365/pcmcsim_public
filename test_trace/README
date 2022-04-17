@@ -1,0 +1,7 @@
+The test trace format
+First line: trace header
+Second line-to-end: traces 
+  > column-1: timestamp
+  > column-2: command type. R/W
+  > column-3: cachline data. 64 B
+  > column-4: thread ID or process ID
