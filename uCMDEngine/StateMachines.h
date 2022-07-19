@@ -319,7 +319,7 @@ namespace PCMCsim
 
         /* Device parameter setup */
         void setup_timings(const uint64_t num_all_banks);
-        void setup_currents(const uint64_t num_banks);
+        void setup_currents( );
         
         friend class RankMachine;
         friend class BankMachine;
