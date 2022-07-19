@@ -32,7 +32,7 @@ StateMachine::StateMachine(JedecEngine* je_): je(je_)
         je->info->get_bankgroups( );
     uint64_t num_banks = je->info->get_banks();
     setup_timings(num_all_banks);
-    setup_currents(num_banks);
+    setup_currents( );
 
     for (uint64_t i=0; i<num_ranks; i++)
         rm.push_back(RankMachine(this, i));
