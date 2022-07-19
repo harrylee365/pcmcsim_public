@@ -703,6 +703,8 @@ void RankMachine::notify(Packet* pkt)
 
 void RankMachine::update_stats(ncycle_t cycles)
 {
+     uint64_t num_dev = sm->je->info->get_devs();
+    
     /* Update BMs first */
     for (uint64_t b=0; b<num_all_banks; b++)
         bm[b].update_stats(cycles);
