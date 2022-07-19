@@ -277,6 +277,8 @@ void StateMachine::setup_timings(const uint64_t num_all_banks)
 
 void StateMachine::setup_currents( )
 {
+    uint64_t num_all_banks = je->info->get_banks( ) * je->info->get_bankgroups( );
+    
     /* Initialize energy-related parameters */
     if (timing_set==false)
     {
@@ -300,10 +302,10 @@ void StateMachine::setup_currents( )
     double freq = (double)(je->info->get_ctrl_freq( )) / 1e6; // MHz
     ncycle_t tRC = tRP + tRAS;
     
-    E_act_inc = (IDD0*tRC - (IDD3N*tRAS + IDD2N*tRP)) / freq;
-    E_rd_inc = (IDD4R-IDD3N) * tBURST / freq;
-    E_wr_inc = (IDD4W-IDD3N) * tBURST / freq;
-    E_refresh_inc = (IDD5-IDD3N) * tRFC / freq;
+    E_act_inc = (IDD0*tRC - (IDD3N*tRAS + IDD2N*tRP)) / num_all_banks / freq;
+    E_rd_inc = (IDD4R-IDD3N) * tBURST / num_all_banks / freq;
+    E_wr_inc = (IDD4W-IDD3N) * tBURST / num_all_banks / freq;
+    E_refresh_inc = (IDD5-IDD3N) * tRFC / num_all_banks / freq;
     E_sref_inc = IDD6 * VDD / freq;
     E_apd_inc = IDD3P * VDD / freq;
     E_sppd_inc = IDD2P0 * VDD / freq;
@@ -702,6 +704,8 @@ void RankMachine::notify(Packet* pkt)
 
 void RankMachine::update_stats(ncycle_t cycles)
 {
+     uint64_t num_dev = sm->je->info->get_devs();
+    
     /* Update BMs first */
     for (uint64_t b=0; b<num_all_banks; b++)
         bm[b].update_stats(cycles);
@@ -711,30 +715,30 @@ void RankMachine::update_stats(ncycle_t cycles)
     {
         case ST_APD:
             cycles_apd += cycles;
-            E_bckgnd += (sm->E_apd_inc*cycles);
+            E_bckgnd += (sm->E_apd_inc*cycles) * num_dev;
             break;
         case ST_FPPD:
             cycles_fppd += cycles;
-            E_bckgnd += (sm->E_fppd_inc*cycles);
+            E_bckgnd += (sm->E_fppd_inc*cycles) * num_dev;
             break;
         case ST_SPPD:
             cycles_sppd += cycles;
-            E_bckgnd += (sm->E_sppd_inc*cycles);
+            E_bckgnd += (sm->E_sppd_inc*cycles) * num_dev;
             break;
         case ST_REFRESH:
         case ST_OPEN:
             cycles_stnby_act += cycles;
-            E_bckgnd += (sm->E_stnby_act_inc*cycles);
-            E_stnby += (sm->E_stnby_act_inc*cycles);
+            E_bckgnd += (sm->E_stnby_act_inc*cycles) * num_dev;
+            E_stnby += (sm->E_stnby_act_inc*cycles) * num_dev;
             break;
         case ST_CLOSED:
             cycles_stnby_pre += cycles;
-            E_bckgnd += (sm->E_stnby_pre_inc*cycles);
-            E_stnby += (sm->E_stnby_pre_inc*cycles);
+            E_bckgnd += (sm->E_stnby_pre_inc*cycles) * num_dev;
+            E_stnby += (sm->E_stnby_pre_inc*cycles) * num_dev;
             break;
         case ST_SREF:
             cycles_sref += cycles;
-            E_bckgnd += (sm->E_sref_inc*cycles);
+            E_bckgnd += (sm->E_sref_inc*cycles) * num_dev;
             break;
         default:
             assert(0);
