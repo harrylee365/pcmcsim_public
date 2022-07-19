@@ -276,8 +276,10 @@ void StateMachine::setup_timings(const uint64_t num_all_banks)
     timing_set = true;
 }
 
-void StateMachine::setup_currents(const uint64_t num_banks)
+void StateMachine::setup_currents( )
 {
+    num_banks = je->info->get_banks( );
+    
     /* Initialize energy-related parameters */
     if (timing_set==false)
     {
