@@ -277,7 +277,7 @@ void StateMachine::setup_timings(const uint64_t num_all_banks)
 
 void StateMachine::setup_currents( )
 {
-    uint64_t num_banks = je->info->get_banks( );
+    uint64_t num_all_banks = je->info->get_banks( ) * je->info->get_bankgroups( );
     
     /* Initialize energy-related parameters */
     if (timing_set==false)
@@ -302,10 +302,10 @@ void StateMachine::setup_currents( )
     double freq = (double)(je->info->get_ctrl_freq( )) / 1e6; // MHz
     ncycle_t tRC = tRP + tRAS;
     
-    E_act_inc = (IDD0*tRC - (IDD3N*tRAS + IDD2N*tRP)) / num_banks / freq;
-    E_rd_inc = (IDD4R-IDD3N) * tBURST / num_banks / freq;
-    E_wr_inc = (IDD4W-IDD3N) * tBURST / num_banks / freq;
-    E_refresh_inc = (IDD5-IDD3N) * tRFC / num_banks / freq;
+    E_act_inc = (IDD0*tRC - (IDD3N*tRAS + IDD2N*tRP)) / num_all_banks / freq;
+    E_rd_inc = (IDD4R-IDD3N) * tBURST / num_all_banks / freq;
+    E_wr_inc = (IDD4W-IDD3N) * tBURST / num_all_banks / freq;
+    E_refresh_inc = (IDD5-IDD3N) * tRFC / num_all_banks / freq;
     E_sref_inc = IDD6 * VDD / freq;
     E_apd_inc = IDD3P * VDD / freq;
     E_sppd_inc = IDD2P0 * VDD / freq;
