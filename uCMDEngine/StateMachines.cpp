@@ -30,7 +30,6 @@ StateMachine::StateMachine(JedecEngine* je_): je(je_)
     num_ranks = je->info->get_ranks( );
     uint64_t num_all_banks = je->info->get_banks( ) *
         je->info->get_bankgroups( );
-    uint64_t num_banks = je->info->get_banks();
     setup_timings(num_all_banks);
     setup_currents( );
 
@@ -278,7 +277,7 @@ void StateMachine::setup_timings(const uint64_t num_all_banks)
 
 void StateMachine::setup_currents( )
 {
-    num_banks = je->info->get_banks( );
+    uint64_t num_banks = je->info->get_banks( );
     
     /* Initialize energy-related parameters */
     if (timing_set==false)
