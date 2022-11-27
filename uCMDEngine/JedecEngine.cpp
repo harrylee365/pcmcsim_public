@@ -817,7 +817,9 @@ void JedecEngine::cycle_ucmdq( )
                     wdata_pkt->owner = this;
                     wdata_pkt->isDATA = true;
                     dpu->recvRequest(wdata_pkt, latency);
-                    wack(pkt, CMD_WACK_ID); //XXX: take care of wid retirement
+
+                    if (memsys->sys_name=="DRAM")
+                        wack(pkt, CMD_WACK_ID); //XXX: take care of wid retirement
                 }
                 else
                 {
