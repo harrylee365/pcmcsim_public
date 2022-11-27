@@ -93,6 +93,9 @@ MemoryControlSystem::~MemoryControlSystem( )
     for (uint64_t ch=0; ch<media.size( ); ch++)
         delete media[ch];
 
+    for (uint64_t ch=0; ch<recvr_dmc.size( ); ch++)
+        delete recvr_dmc[ch];
+
     delete info;
     delete adec;
     delete mdec;
@@ -308,27 +311,31 @@ void MemoryControlSystem::setup_dmc(Component* host_itf)
     geq->set_dbg_msg(getParamBOOL("geq.dbg_msg", false));
     parser = new Parser(this, "parser");
 
+    recvr_dmc.resize(info->get_channels( ));
     ucmde.resize(info->get_channels( ));
     media.resize(info->get_channels( ));
     for (uint64_t ch=0; ch<info->get_channels( ); ch++)
     {
-        std::string jheader = "dram.ucmde";
+        std::string header = "dram.reqRecv["+std::to_string(ch)+"]";
+        recvr_dmc[ch] = new RequestReceiver(this, header);
 
-        ucmde[ch] = 
-            JedecPolicyFactory::create_engine_policy(
-                this, adec, info, jheader, global_freq, ch);
+        header = "dram.ucmde";
+        ucmde[ch] = JedecPolicyFactory::create_engine_policy(
+                this, adec, info, header, global_freq, ch);
 
         static_cast<JedecEngine*>(ucmde[ch])->master = parser;
 
         media[ch] = new DummyJedecMEM(this, 
-            jheader+".media["+std::to_string(ch)+"]", info);
+            header+".media["+std::to_string(ch)+"]", info);
     }
 
     /* Connect modules */
     for (uint64_t ch=0; ch<info->get_channels( ); ch++)
     {
-        parser->expand_path(ucmde[ch]);
-        ucmde[ch]->setParent(parser);
+        parser->expand_path(recvr_dmc[ch]);
+        recvr_dmc[ch]->parser = parser;
+        recvr_dmc[ch]->dcache = ucmde[ch];
+        ucmde[ch]->setParent(recvr_dmc[ch]);
         ucmde[ch]->dpu = media[ch];
         ucmde[ch]->media = media[ch];
         media[ch]->setParent(ucmde[ch]);
