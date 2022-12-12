@@ -27,7 +27,7 @@ Followings are requirements for the simulator:
 Steps for executing the simulator:
 1. Download PCMCsim
 
-        $ git clone https://gitlab.com/harrylee365/pcmcsim_public.git
+        $ git clone https://github.com/harrylee365/pcmcsim_public.git
 
 2. Build PCMCsim in O3 mode with 4 cores (confer `debug` option if O0 is desired)
 
