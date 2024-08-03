@@ -71,7 +71,7 @@ void RequestReceiver::recvRequest(Packet* pkt, ncycle_t delay)
 
 void RequestReceiver::recvResponse(Packet* pkt, ncycle_t delay)
 {
-    if (pkt->cmd==CMD_WRITE)
+    if (pkt->cmd==CMD_WRITE || pkt->cmd==CMD_WACK_ID)
         resp_handle(pkt);
     else if (pkt->cmd==CMD_READ)
         Component::recvResponse(pkt, delay);
@@ -109,7 +109,7 @@ void RequestReceiver::handle_events(ncycle_t curr_tick)
     {
         LocalEvent* tmp_et = await_resp.front( );
         Packet* pkt = tmp_et->pkt;
-        resp_handle( pkt );
+        resp_handle(pkt);
 
         await_resp.pop_front( );
         delete tmp_et;
@@ -159,7 +159,7 @@ void RequestReceiver::insert_buffer(Packet* pkt)
     }
 }
 
-void RequestReceiver::resp_handle( Packet* pkt )
+void RequestReceiver::resp_handle(Packet* pkt)
 {
     if (pkt->cmd == CMD_READ)
     {
@@ -193,6 +193,13 @@ void RequestReceiver::resp_handle( Packet* pkt )
         ID_unmap(pkt->buffer_idx, CMD_WRITE, pkt);
         credit_calc(CMD_WRITE, false);
         pkt->buffer_idx = -1;
+    }
+    else if (pkt->cmd==CMD_WACK_ID)
+    {
+        assert(memsys->sys_name=="DRAM");
+        assert(pkt->req_id>=0);
+        ID_unmap(pkt->req_id, CMD_WRITE, pkt);
+        credit_calc(CMD_WRITE, false);
     }
     else
         assert(0);
@@ -412,11 +419,7 @@ void RequestReceiver::CAM_check(Packet* pkt)
                 hazard_handle(pkt, WAW, wbid);
 
             if (wbid==buffer_size)
-            {
                 insert_buffer(pkt);
-//                registerCallback((CallbackPtr)&RequestReceiver::insert_buffer,
-//                    1, PRIORITY_INSERT_BUFFER, reinterpret_cast<void*>(pkt));
-            }
         }
         else
             insert_buffer(pkt);
@@ -425,12 +428,6 @@ void RequestReceiver::CAM_check(Packet* pkt)
     {
         if (drain_mode && wbid<buffer_size)
             hazard_handle(pkt, RAW, wbid);
-        else if (drain_mode)
-        {
-            insert_buffer(pkt);
-//            registerCallback((CallbackPtr)&RequestReceiver::insert_buffer,
-//                1, PRIORITY_INSERT_BUFFER, reinterpret_cast<void*>(pkt));
-        }
         else
             insert_buffer(pkt); 
     }
@@ -450,7 +447,7 @@ void RequestReceiver::hazard_handle(Packet* pkt, hzd_t hzd, uint64_t hit_bid)
 
     if (hzd == WAR)
     {
-        assert(wbuffer_WAR_rid[get_bid(pkt)].valid==false); //XXX
+        assert(wbuffer_WAR_rid[get_bid(pkt)].valid==false);
         wbuffer_WAR_rid[get_bid(pkt)].id = hit_bid;
         wbuffer_WAR_rid[get_bid(pkt)].valid = true;
         rbuffer_WAR_wid[hit_bid].id = pkt->req_id;

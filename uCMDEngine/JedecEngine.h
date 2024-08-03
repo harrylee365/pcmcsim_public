@@ -107,7 +107,8 @@ namespace PCMCsim
         bool use_pd;
         bool use_refresh;
         bool use_sref;
-        bool standalone_mode; // a separate DPU is connected or write request ID is considered
+        bool standalone_mode = true;
+        bool decouple_datapath; // a separate datapath
 
         /* Input-side of the engine: reqlist->ucmdq */
         uint64_t size_reqlist;

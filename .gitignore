@@ -1,5 +1,6 @@
 obj_debug/
 obj_fast/
+test_trace/
 *.fast
 *.debug
 *.swp

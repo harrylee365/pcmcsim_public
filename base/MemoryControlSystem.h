@@ -100,6 +100,7 @@ namespace PCMCsim
         DataCache* dcache;
         AITManager* aitm;
         ReadModifyWrite* rmw;
+        std::vector<RequestReceiver*> recvr_dmc;
         std::vector<uCMDEngine*> ucmde;
         std::vector<DataPathUnit*> dpu;
         std::vector<DummyMemory*> media;

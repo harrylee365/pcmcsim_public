@@ -23,6 +23,7 @@ void Parser::recvRequest(Packet* pkt, ncycle_t delay)
     uint64_t ch = 0;
     if (memsys->sys_name=="DRAM")
         ch = memsys->adec->decode_addr(pkt->LADDR, FLD_CH);
+
     paths[ch]->recvRequest(pkt, delay);
     
     PCMC_DBG(dbg_msg, "[Parser] Dispatch [LA=0x%lx, PA=%lx, ID=%ld]\n",
@@ -46,7 +47,7 @@ void Parser::recvResponse(Packet* pkt, ncycle_t delay)
 
 bool Parser::isReady(Packet* pkt)
 {
-    if (pkt->isDATA)
+    if (pkt->isDATA) // for standalone mode
         return true;
     else
     {

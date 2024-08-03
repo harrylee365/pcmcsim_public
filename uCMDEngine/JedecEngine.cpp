@@ -100,7 +100,7 @@ free_respq(0), last_updated_tick(0)
         exit(1);
     }
 
-    standalone_mode = memsys->getParamBOOL(cp_name+".standalone_mode", true);
+    decouple_datapath = memsys->getParamBOOL(cp_name+".decouple_datapath", true);
 
     /* Setup state machine, including timing & current */
     sm = new StateMachine(this);
@@ -245,7 +245,7 @@ void JedecEngine::handle_await_reqs( )
     for ( ; e_it!=await_req.end( ); )
     {
         Packet* pkt = (*e_it)->pkt;
-        if (standalone_mode) 
+        if (decouple_datapath==false) 
         {
             /* Assign dest for resp. later */
             pkt->dest = pkt->from;
@@ -293,7 +293,7 @@ void JedecEngine::handle_await_reqs( )
 
 void JedecEngine::handle_await_resps( )
 {
-    assert(standalone_mode);
+    assert(decouple_datapath==false);
 
     std::list<LocalEvent*>::iterator e_it = await_resp.begin( );
     for ( ; e_it!=await_resp.end( ); )
@@ -317,7 +317,7 @@ void JedecEngine::handle_await_resps( )
 
 void JedecEngine::cycle_respq( )
 {
-    assert(standalone_mode);
+    assert(decouple_datapath==false);
     assert(respq.empty( )==false);
 
     /* Respond packet */
@@ -329,7 +329,8 @@ void JedecEngine::cycle_respq( )
         " is responded to XBAR (size=%lu/%lu)\n", pkt->LADDR, pkt->req_id, 
         get_cmd_str(pkt).c_str( ), pkt, reqlist.size( ), size_reqlist); 
 
-    if (parent->isReady(pkt))
+    if (memsys->sys_name=="DRAM" || // MC only
+        parent->isReady(pkt))       // AIT's DMC
     {
         parent->recvResponse(pkt);
         respq.pop( );
@@ -807,7 +808,7 @@ void JedecEngine::cycle_ucmdq( )
             media->recvRequest(pkt, latency); // send command
             if (pkt->cmd==CMD_WRITE || pkt->cmd==CMD_WRITE_PRE)
             {
-                if (standalone_mode) 
+                if (decouple_datapath==false) 
                 {
                     /* Send data to media (=dpu) */
                     Packet* wdata_pkt = new Packet( );
@@ -816,6 +817,9 @@ void JedecEngine::cycle_ucmdq( )
                     wdata_pkt->owner = this;
                     wdata_pkt->isDATA = true;
                     dpu->recvRequest(wdata_pkt, latency);
+
+                    if (memsys->sys_name=="DRAM")
+                        wack(pkt, CMD_WACK_ID); //XXX: take care of wid retirement
                 }
                 else
                 {
